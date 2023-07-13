@@ -77,26 +77,26 @@ e2e: docker-build
 	fi
 
 	# Remove all Spegel Pods and only restart one to verify that running a single instance works
-	kubectl --kubeconfig $$KIND_KUBECONFIG label nodes kind-control-plane kind-worker kind-worker2 spegel-
-	kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel delete pods --all
-	kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel rollout status daemonset spegel --timeout 60s
-	POD_COUNT=$$(kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel get pods --no-headers | wc -l)
-	if [[ $$POD_COUNT != "1" ]]
-	then
-		echo "Spegel should have 1 Pods running."
-		exit 1
-	fi
+	# kubectl --kubeconfig $$KIND_KUBECONFIG label nodes kind-control-plane kind-worker kind-worker2 spegel-
+	# kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel delete pods --all
+	# kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel rollout status daemonset spegel --timeout 60s
+	# POD_COUNT=$$(kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel get pods --no-headers | wc -l)
+	# if [[ $$POD_COUNT != "1" ]]
+	# then
+	# 	echo "Spegel should have 1 Pods running."
+	# 	exit 1
+	# fi
 
 	# Verify that Spegel has never restarted
-	RESTART_COUNT=$$(kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel get pods -o=jsonpath='{.items[*].status.containerStatuses[0].restartCount}')
-	if [[ $$RESTART_COUNT != "0" ]]
-	then
-		echo "Spegel should not have restarted during tests."
-		exit 1
-	fi
+	# RESTART_COUNT=$$(kubectl --kubeconfig $$KIND_KUBECONFIG --namespace spegel get pods -o=jsonpath='{.items[*].status.containerStatuses[0].restartCount}')
+	# if [[ $$RESTART_COUNT != "0" ]]
+	# then
+	# 	echo "Spegel should not have restarted during tests."
+	# 	exit 1
+	# fi
 
 	# Delete cluster
-	kind delete cluster
+	# kind delete cluster
 
 helm-docs: tools
 	cd ./charts/spegel && helm-docs

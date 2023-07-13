@@ -271,20 +271,13 @@ func hostsFileContent(registryURL url.URL, mirrorURLs []url.URL) string {
 		server = "https://registry-1.docker.io"
 	}
 	content := fmt.Sprintf(`server = "%s"`, server)
-	for i, mirrorURL := range mirrorURLs {
+	for _, mirrorURL := range mirrorURLs {
 		content = fmt.Sprintf(`%[1]s
 
 [host."%[3]s"]
   capabilities = ["pull", "resolve"]
 [host."%[3]s".header]
-  %[4]s = ["%[2]s"]
-  %[5]s = ["true"]`, content, registryURL.String(), mirrorURL.String(), header.RegistryHeader, header.MirrorHeader)
-
-		// We assume first mirror registry is local. All others are external.
-		if i != 0 {
-			content = fmt.Sprintf(`%s
-  %s = ["true"]`, content, header.ExternalHeader)
-		}
+  %[4]s = ["%[2]s"]`, content, registryURL.Host, mirrorURL.String(), header.RegistryHeader, mirrorURL.Host)
 	}
 	return content
 }

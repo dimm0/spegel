@@ -232,8 +232,7 @@ func TestHostFileContent(t *testing.T) {
 [host."http://127.0.0.1:5000"]
   capabilities = ["pull", "resolve"]
 [host."http://127.0.0.1:5000".header]
-  X-Spegel-Registry = ["https://example.com"]
-  X-Spegel-Mirror = ["true"]`
+  X-Spegel-Registry = ["example.com"]`
 	require.Equal(t, expected, content)
 }
 
@@ -247,15 +246,12 @@ func TestHostFileContentMultipleMirrors(t *testing.T) {
 [host."http://127.0.0.1:5000"]
   capabilities = ["pull", "resolve"]
 [host."http://127.0.0.1:5000".header]
-  X-Spegel-Registry = ["https://example.com"]
-  X-Spegel-Mirror = ["true"]
+  X-Spegel-Registry = ["example.com"]
 
 [host."http://127.0.0.1:5001"]
   capabilities = ["pull", "resolve"]
 [host."http://127.0.0.1:5001".header]
-  X-Spegel-Registry = ["https://example.com"]
-  X-Spegel-Mirror = ["true"]
-  X-Spegel-External = ["true"]`
+  X-Spegel-Registry = ["example.com"]`
 	require.Equal(t, expected, content)
 }
 
@@ -270,8 +266,7 @@ func TestHostFileContentDockerOverride(t *testing.T) {
 [host."http://127.0.0.1:5000"]
   capabilities = ["pull", "resolve"]
 [host."http://127.0.0.1:5000".header]
-  X-Spegel-Registry = ["https://docker.io"]
-  X-Spegel-Mirror = ["true"]`
+  X-Spegel-Registry = ["docker.io"]`
 	require.Equal(t, expected, content)
 }
 

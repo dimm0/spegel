@@ -86,6 +86,8 @@ func (r *Registry) readyHandler(c *gin.Context) {
 }
 
 func (r *Registry) registryHandler(c *gin.Context) {
+	fmt.Println("Client IP", c.ClientIP(), "Remote IP", c.RemoteIP(), "Local Address", c.Request.Context().Value(http.LocalAddrContextKey))
+
 	// Only deal with GET and HEAD requests.
 	if !(c.Request.Method == http.MethodGet || c.Request.Method == http.MethodHead) {
 		c.Status(http.StatusNotFound)
@@ -102,16 +104,8 @@ func (r *Registry) registryHandler(c *gin.Context) {
 		return
 	}
 
-	// Always expect remoteRegistry header to be passed in request.
-	remoteRegistry, err := header.GetRemoteRegistry(c.Request.Header)
-	if err != nil {
-		//nolint:errcheck // ignore
-		c.AbortWithError(http.StatusNotFound, err)
-		return
-	}
-
 	// Parse out path components from request.
-	ref, dgst, refType, err := oci.ParsePathComponents(remoteRegistry, c.Request.URL.Path)
+	ref, dgst, refType, err := oci.ParsePathComponents(c.Request.URL.Path, c.GetHeader(header.RegistryHeader))
 	if err != nil {
 		//nolint:errcheck // ignore
 		c.AbortWithError(http.StatusNotFound, err)
@@ -119,7 +113,8 @@ func (r *Registry) registryHandler(c *gin.Context) {
 	}
 
 	// Request with mirror header are proxied.
-	if header.IsMirrorRequest(c.Request.Header) {
+	if c.GetHeader(header.MirroredHeader) == "" {
+		c.Request.Header[header.MirroredHeader] = []string{"false"}
 		key := dgst.String()
 		if key == "" {
 			key = ref
@@ -155,11 +150,9 @@ func (r *Registry) handleMirror(c *gin.Context, key string) {
 
 	log := pkggin.FromContextOrDiscard(c)
 
-	// Disable mirroring so we dont end with an infinite loop
-	c.Request.Header[header.MirrorHeader] = []string{"false"}
-
 	// We should allow resolving to ourself if the mirror request is external.
-	isExternal := header.IsExternalRequest(c.Request.Header)
+	// isExternal := header.IsExternalRequest(c.Request.Header)
+	isExternal := true
 	if isExternal {
 		log.Info("handling mirror request from external node", "path", c.Request.URL.Path, "ip", c.RemoteIP())
 	}
@@ -271,14 +264,15 @@ func metricsHandler(c *gin.Context) {
 	if handler != "mirror" {
 		return
 	}
-	remoteRegistry, err := header.GetRemoteRegistry(c.Request.Header)
-	if err != nil {
-		return
-	}
+	// remoteRegistry, err := header.GetRemoteRegistry(c.Request.Header)
+	// if err != nil {
+	// 	return
+	// }
+	remoteRegistry := ""
 	sourceType := "internal"
-	if header.IsExternalRequest(c.Request.Header) {
-		sourceType = "external"
-	}
+	// if header.IsExternalRequest(c.Request.Header) {
+	// 	sourceType = "external"
+	// }
 	cacheType := "hit"
 	if c.Writer.Status() != http.StatusOK {
 		cacheType = "miss"
