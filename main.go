@@ -37,6 +37,7 @@ type RegistryCmd struct {
 	RegistryAddr                 string        `arg:"--registry-addr,required" help:"address to server image registry."`
 	RouterAddr                   string        `arg:"--router-addr,required" help:"address to serve router."`
 	MetricsAddr                  string        `arg:"--metrics-addr,required" help:"address to serve metrics."`
+	NodeIP                       string        `arg:"--node-ip,required" help:"IP of node Spegel is running on."`
 	Registries                   []url.URL     `arg:"--registries,required" help:"registries that are configured to be mirrored."`
 	ContainerdSock               string        `arg:"--containerd-sock" default:"/run/containerd/containerd.sock" help:"Endpoint of containerd service."`
 	ContainerdNamespace          string        `arg:"--containerd-namespace" default:"k8s.io" help:"Containerd namespace to fetch images from."`
@@ -148,7 +149,7 @@ func registryCommand(ctx context.Context, args *RegistryCmd) (err error) {
 		return state.Track(ctx, ociClient, router, args.ResolveLatestTag)
 	})
 
-	reg := registry.NewRegistry(ociClient, router, args.MirrorResolveRetries, args.MirrorResolveTimeout, args.ResolveLatestTag)
+	reg := registry.NewRegistry(ociClient, router, args.NodeIP, args.MirrorResolveRetries, args.MirrorResolveTimeout, args.ResolveLatestTag)
 	regSrv := reg.Server(args.RegistryAddr, log)
 	g.Go(func() error {
 		if err := regSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
